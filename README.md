@@ -20,3 +20,5 @@ This project performs Market Basket Analysis using the FP-Growth algorithm in Da
 cd streamlit_app
 pip install -r ../requirements.txt
 streamlit run app.py
+
+## Do Visit App:marketbaksketanalysis-8gi2o8ogb9p9dwmadtc5le.streamlit.app
