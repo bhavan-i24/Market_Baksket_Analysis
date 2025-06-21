@@ -1,0 +1,6 @@
+```txt
+streamlit
+pandas
+matplotlib
+seaborn
+networkx
