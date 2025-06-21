@@ -4,34 +4,43 @@ import pandas as pd
 st.set_page_config(page_title="Market Basket Search", layout="centered")
 st.title("🛍️ Market Basket Product Insights")
 
-# Load CSVs
-itemsets_df = pd.read_csv("frequent_itemsets_sample.csv.csv")
-rules_df = pd.read_csv("association_rules_sample.csv.csv")
+# File upload section
+st.sidebar.header("📂 Upload Your CSV Files")
+itemsets_file = st.sidebar.file_uploader("Upload Frequent Itemsets CSV", type="csv")
+rules_file = st.sidebar.file_uploader("Upload Association Rules CSV", type="csv")
 
-# 🧹 Clean columns (convert stringified lists to Python lists)
-itemsets_df["items"] = itemsets_df["items"].apply(lambda x: [i.strip().lower() for i in x.split(",")])
-rules_df["antecedent"] = rules_df["antecedent"].apply(lambda x: [i.strip().lower() for i in x.split(",")])
-rules_df["consequent"] = rules_df["consequent"].apply(lambda x: [i.strip().lower() for i in x.split(",")])
+# Only proceed if both files are uploaded
+if itemsets_file and rules_file:
+    # Load CSVs from upload
+    itemsets_df = pd.read_csv(itemsets_file)
+    rules_df = pd.read_csv(rules_file)
 
-# 🔍 User input
-st.subheader("🔎 Search for a Product")
-search_product = st.text_input("Enter a product name (e.g., milk, eggs, bread):").strip().lower()
+    # Clean and parse stringified lists
+    itemsets_df["items"] = itemsets_df["items"].apply(lambda x: [i.strip().lower() for i in x.split(",")])
+    rules_df["antecedent"] = rules_df["antecedent"].apply(lambda x: [i.strip().lower() for i in x.split(",")])
+    rules_df["consequent"] = rules_df["consequent"].apply(lambda x: [i.strip().lower() for i in x.split(",")])
 
-if search_product:
-    # 1️⃣ Frequency count from frequent itemsets
-    match_freq = itemsets_df[itemsets_df["items"].apply(lambda x: search_product in x)]
-    total_count = match_freq["freq"].sum()
+    # Input section
+    st.subheader("🔎 Search for a Product")
+    search_product = st.text_input("Enter a product name (e.g., milk, bread):").strip().lower()
 
-    if total_count > 0:
-        st.success(f"✅ '{search_product}' appeared in {int(total_count)} orders.")
-    else:
-        st.warning(f"❌ '{search_product}' not found in frequent itemsets.")
+    if search_product:
+        # Frequency check
+        match_freq = itemsets_df[itemsets_df["items"].apply(lambda x: search_product in x)]
+        total_count = match_freq["freq"].sum()
 
-    # 2️⃣ Show matching association rules
-    matching_rules = rules_df[rules_df["antecedent"].apply(lambda x: search_product in x)]
+        if total_count > 0:
+            st.success(f"✅ '{search_product}' appeared in {int(total_count)} orders.")
+        else:
+            st.warning(f"❌ '{search_product}' not found in frequent itemsets.")
 
-    if not matching_rules.empty:
-        st.subheader("📦 Frequently Bought Together:")
-        st.dataframe(matching_rules[["consequent", "confidence", "lift"]])
-    else:
-        st.info("No association rules found for this product.")
+        # Associated products
+        matching_rules = rules_df[rules_df["antecedent"].apply(lambda x: search_product in x)]
+
+        if not matching_rules.empty:
+            st.subheader("📦 Frequently Bought Together:")
+            st.dataframe(matching_rules[["consequent", "confidence", "lift"]])
+        else:
+            st.info("No association rules found for this product.")
+else:
+    st.warning("⬅️ Please upload both CSV files in the sidebar to continue.")
